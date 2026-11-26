@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="kk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14110e">
+  <title>GeoKMG · 3D презентация</title>
+  <link rel="stylesheet" href="presentation.css">
+  <script src="geokmg-3d.js" defer></script>
+  <script src="presentation.js" defer></script>
+</head>
+<body class="presentation-page">
+  <header class="deck-header">
+    <a class="deck-brand" href="GeoKMG.html" aria-label="GeoKMG сайтына оралу">Geo<span>KMG</span></a>
+    <div class="deck-tools">
+      <a href="presentation-notes.html">Айту мәтіні</a>
+      <button type="button" id="motion" hidden>Анимацияны тоқтату</button>
+      <button type="button" id="fullscreen" hidden aria-label="Толық экранға өту" title="Толық экран">⛶</button>
+    </div>
+  </header>
+
+  <main class="deck" id="deck" aria-label="GeoKMG презентациясы">
+    <article class="slide slide-intro" aria-labelledby="slide-title-1">
+      <div class="slide-copy">
+        <h1 id="slide-title-1">Мұнай-газ <strong>геологиясы</strong></h1>
+        <p class="slide-summary">GeoKMG</p>
+      </div>
+      <figure class="slide-visual map-visual">
+        <img src="assets/kazakhstan-relief.webp" width="1536" height="1024" alt="Қазақстанның көлемді бедер иллюстрациясы">
+        <figcaption>Қазақстанның жер бедері</figcaption>
+      </figure>
+    </article>
+
+    <article class="slide slide-layer" aria-labelledby="slide-title-2" hidden>
+      <div class="slide-copy">
+        <h1 id="slide-title-2">Қабаттар <strong>мен ұңғыма</strong></h1>
+      </div>
+      <figure class="slide-visual model-visual">
+        <canvas class="deck-canvas" width="640" height="480" data-model="latyshova" data-yaw=".66" data-pitch=".51" role="img" aria-label="Ұңғыма ізі көрсетілген түрлі түсті тау жыныстарының кеңістіктегі үлгісі"></canvas>
+        <figcaption>Оқу сызбасы · Масштаб шартты</figcaption>
+      </figure>
+    </article>
+
+    <article class="slide slide-delta" aria-labelledby="slide-title-3" hidden>
+      <div class="slide-copy">
+        <h1 id="slide-title-3">Өзен <strong>атырауы</strong></h1>
+      </div>
+      <figure class="slide-visual model-visual">
+        <canvas class="deck-canvas" width="640" height="480" data-model="baraboshkin" data-yaw=".20" data-pitch="1.03" role="img" aria-label="Теңізге жақындаған сайын бірнеше тармаққа бөлінетін өзен арнасының 3D үлгісі"></canvas>
+        <figcaption>Оқу сызбасы · Масштаб шартты</figcaption>
+      </figure>
+    </article>
+
+    <article class="slide slide-data" aria-labelledby="slide-title-4" hidden>
+      <div class="slide-copy">
+        <h1 id="slide-title-4">Дерекпен <strong>жұмыс</strong></h1>
+      </div>
+      <figure class="slide-visual chart-visual">
+        <canvas class="deck-canvas" width="640" height="480" data-chart role="img" aria-label="Шартты деректерден жасалған екі каротаж қисығы тереңдік бойынша өзгеріп отырады"></canvas>
+        <figcaption>Шартты деректер</figcaption>
+      </figure>
+    </article>
+
+    <article class="slide slide-finish" aria-labelledby="slide-title-5" hidden>
+      <div class="slide-copy">
+        <h1 id="slide-title-5">Зерттеп <strong>көр</strong></h1>
+        <a class="course-cta" href="GeoKMG.html">Курстарға өту <span aria-hidden="true">↗</span></a>
+      </div>
+      <figure class="slide-visual model-visual">
+        <canvas class="deck-canvas" width="640" height="480" data-model="kuznetsov" data-yaw=".70" data-pitch=".62" role="img" aria-label="Карбонатты рифтің өзегі мен беткейін көрсететін айналмалы 3D үлгі"></canvas>
+        <figcaption>Оқу сызбасы · Масштаб шартты</figcaption>
+      </figure>
+    </article>
+  </main>
+
+  <nav class="deck-controls" aria-label="Слайдтарды ауыстыру">
+    <button type="button" id="previous" class="deck-arrow" aria-label="Алдыңғы слайд" disabled>←</button>
+    <div class="deck-pagination">
+      <div class="deck-dots" aria-label="Слайдтар">
+        <a href="#1" aria-label="1. Мұнай-газ геологиясы" aria-current="step"></a>
+        <a href="#2" aria-label="2. Қабаттар мен ұңғыма"></a>
+        <a href="#3" aria-label="3. Өзен атырауы"></a>
+        <a href="#4" aria-label="4. Дерекпен жұмыс"></a>
+        <a href="#5" aria-label="5. Зерттеп көр"></a>
+      </div>
+      <output id="slide-count" aria-live="polite">1 / 5</output>
+    </div>
+    <button type="button" id="next" class="deck-arrow" aria-label="Келесі слайд">→</button>
+  </nav>
+</body>
+</html>

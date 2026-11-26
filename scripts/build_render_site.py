@@ -11,6 +11,19 @@ SCANS = "window.offlineScans = "
 COURSES = "window.courseContent.previews = "
 READING_START = "// BEGIN GENERATED SOURCE READING"
 READING_END = "// END GENERATED SOURCE READING"
+STATIC_FILES = {
+    "index.html",
+    "presentation.html",
+    "presentation-notes.html",
+    "presentation.css",
+    "presentation.js",
+    "geokmg-3d.js",
+    "assets/kazakhstan-relief.webp",
+    "assets/Oswald-OFL.txt",
+    "assets/oswald-latin.woff2",
+    "assets/oswald-cyrillic.woff2",
+    "assets/oswald-cyrillic-ext.woff2",
+}
 
 
 def public_courses(line):
@@ -49,11 +62,19 @@ def build():
         raise ValueError("Public build still contains source scans")
 
     PUBLISH.mkdir(exist_ok=True)
-    unexpected = {file.name for file in PUBLISH.iterdir()} - {"GeoKMG.html", "index.html"}
+    allowed = STATIC_FILES | {"GeoKMG.html", "assets"}
+    unexpected = {
+        path.relative_to(PUBLISH).as_posix()
+        for path in PUBLISH.rglob("*")
+        if path.is_symlink() or path.relative_to(PUBLISH).as_posix() not in allowed
+    }
     if unexpected:
         raise ValueError(f"Unexpected files in the publish directory: {sorted(unexpected)}")
     (PUBLISH / "GeoKMG.html").write_text(output, encoding="utf-8")
-    copyfile(ROOT / "index.html", PUBLISH / "index.html")
+    for relative in STATIC_FILES:
+        target = PUBLISH / relative
+        target.parent.mkdir(exist_ok=True)
+        copyfile(ROOT / relative, target)
 
 
 if __name__ == "__main__":

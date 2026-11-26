@@ -1396,6 +1396,12 @@ window.courseContent.additionalReading = {
 
   window.GeoKMG3D = {
     colors,
+    createView(canvas, modelId) {
+      const model = geometry[modelId];
+      const context = canvas.getContext("2d");
+      if (!model || !context) return null;
+      return (yaw, pitch, zoom = 1) => drawCanvas(canvas, context, model, [yaw, pitch, zoom], true);
+    },
     render(container) {
       active.forEach(dispose => dispose());
       active = [...container.querySelectorAll("[data-geo-model]")].map(mount);
@@ -1682,6 +1688,7 @@ const strings = {
   atlasCatalog:tr('каталогтағы курс','курсов в каталоге','courses in the catalog'),
   atlasModels:tr('интерактивті 3D үлгі','интерактивные 3D-модели','interactive 3D models'),
   atlasExplore:tr('3D көріністі ашу','Смотреть 3D','Explore in 3D'),
+  presentation:tr('3D презентация','3D-презентация','3D presentation'),
   journeyTitle:tr('Жер қойнауына саяхат','Путешествие в недра','Journey below ground'),
   journeyHint:tr('Бетті жоғары-төмен жылжытыңыз. 3D үлгісі пішінін біртіндеп өзгертеді.','Листайте страницу вниз и вверх. Форма 3D-модели меняется вместе с прокруткой.','Scroll down or up. The 3D model changes shape as you scroll.'),
   journeyModels:tr('Үш жер бедері','Три формы рельефа','Three landforms'),
@@ -1844,6 +1851,7 @@ function atlasHero(course, showJourney) {
       <div class="button-row">
         ${button(t('resume') + ' ' + icon('arrow'), 'resume', course.id, '')}
         ${showJourney ? '<a class="button secondary" href="#terrain">' + t('atlasExplore') + ' <span aria-hidden="true">↓</span></a>' : ''}
+        <a class="button secondary" href="presentation.html">${t('presentation')} <span aria-hidden="true">↗</span></a>
       </div>
     </div>
     <ul class="atlas-facts">

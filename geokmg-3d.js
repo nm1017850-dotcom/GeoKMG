@@ -549,6 +549,12 @@
 
   window.GeoKMG3D = {
     colors,
+    createView(canvas, modelId) {
+      const model = geometry[modelId];
+      const context = canvas.getContext("2d");
+      if (!model || !context) return null;
+      return (yaw, pitch, zoom = 1) => drawCanvas(canvas, context, model, [yaw, pitch, zoom], true);
+    },
     render(container) {
       active.forEach(dispose => dispose());
       active = [...container.querySelectorAll("[data-geo-model]")].map(mount);
