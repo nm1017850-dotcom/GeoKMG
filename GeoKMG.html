@@ -1674,6 +1674,7 @@ const strings = {
   plotBookData:tr('Кітаптағы деректер','Данные из книги','Book data'),
   ocrSource:tr('Мәтін PDF сканымен әлі салыстырылмаған.','Текст из OCR. Сверка со сканом PDF ещё нужна.','OCR text. Verification against the PDF scan is pending.'),
   scans:tr('PDF беттері','Страницы PDF','PDF pages'),
+  scanUnavailable:tr('Бұл нұсқада скан қолжетімді емес.','В этой версии скан недоступен.','The scan is unavailable in this edition.'),
   model3d:tr('3D үлгісі','3D-модель','3D model'),
   atlasTitle:tr('Мұнай мен газ','Геология','Oil and gas'),
   atlasEmphasis:tr('геологиясы','нефти и газа','geology'),
@@ -2432,14 +2433,14 @@ function render(focus) {
 function resetQuiz() { qIndex = 0; responses = []; feedback = null; revealed = ''; }
 function showSource(page, claim) {
   const dialog = document.querySelector('#source-dialog');
-  const pageRecord = currentCourse().pages[page];
-  const scan = window.offlineScans?.[pageRecord.scan] || pageRecord.scan;
+  const scanPath = currentCourse().pages?.[page]?.scan;
+  const scan = scanPath && (window.offlineScans?.[scanPath] || scanPath);
   dialog.innerHTML = `${button(t('close'),'close-source')}
     <h2>${t('page')} ${page}</h2>${claim ? `<p>${t('citation')}</p>
     <blockquote lang="${escapeHTML(claim.quoteLanguage)}">${escapeHTML(claim.quote)}</blockquote>
     ${claim.translation && claim.quoteLanguage !== state.lang ? `<p>${t('translation')}</p><blockquote>${local(claim.translation)}</blockquote>` : ''}` : ''}
     ${scan ? `<a href="${escapeHTML(scan)}"><img src="${escapeHTML(scan)}" alt="${t('page')} ${page}"></a>`
-      : `<p class="subtle">${t('ocrSource')}</p>`}`;
+      : `<p class="subtle">${scanPath ? t('ocrSource') : t('scanUnavailable')}</p>`}`;
   dialog.showModal();
 }
 
