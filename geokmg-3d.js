@@ -139,6 +139,142 @@
     baraboshkin: deltaSection(),
   };
 
+  const mix = (a, b, t) => a + (b - a) * t;
+  const ease = t => t * t * (3 - 2 * t);
+
+  const terrains = [
+    {
+      round: 0.95,
+      height(u, v) {
+        return -0.24 + 1.62 * Math.exp(-3.45 * ((u + 0.11) ** 2 + v ** 2))
+          + 0.065 * Math.cos(u * 17 + v * 5) * Math.cos(v * 19);
+      },
+      color(u, v) {
+        const r = Math.hypot(u + 0.11, v) + 0.075 * Math.sin(u * 19 + v * 7);
+        return r < 0.41 ? "#e1bc80" : r < 0.68 ? "#b7825b" : r < 0.86 ? "#8e9470" : "#62998b";
+      },
+      strata: ["#405e57", "#789184", "#b79b72", "#9f8a66", "#bc9b6c"],
+    },
+    {
+      round: 0.30,
+      height(u, v) {
+        const inland = (1 - v) / 2;
+        return -0.36 + 0.99 * inland + 0.11 * Math.cos(u * 2.5) * inland
+          + 0.038 * Math.cos(v * 12.0 + u * 7);
+      },
+      color(u, v) {
+        const stem = -0.12 + 0.11 * Math.sin(v * 4);
+        const branch = Math.max(0, v + 0.35);
+        const water = v > 0.52 + 0.12 * Math.cos(u * 4)
+          || Math.abs(u - stem) < 0.065
+          || (v > -0.35 && Math.min(Math.abs(u - stem - branch * 0.64),
+            Math.abs(u - stem + branch * 0.59)) < 0.057);
+        if (water) return v > 0.53 ? "#5299a1" : "#397e8c";
+        return Math.abs(u - stem) < 0.29 + branch * 0.52 ? "#d7b478" : "#919c70";
+      },
+      strata: ["#4f6859", "#85916f", "#b69b6e", "#ddba86", "#ad9c73"],
+    },
+    {
+      round: 0,
+      height(u, v) {
+        return 0.61 + 0.055 * Math.cos(u * 6) * Math.sin(v * 7);
+      },
+      color(u, v) {
+        return Math.cos(u * 8 + v) + Math.sin(v * 7) > 0.64 ? "#97a67d" : "#829574";
+      },
+      strata: ["#758378", "#bf955e", "#536a73", "#c68f5c", "#9ca57d"],
+    },
+  ];
+
+  function landscapeFrame(terrain) {
+    const columns = 28, rows = 22;
+    const levels = [0, 0.19, 0.40, 0.56, 0.80, 1];
+    const coordinate = (column, row) => [column * 2 / columns - 1, row * 2 / rows - 1];
+    const terrainPoint = (column, row, level) => {
+      const [u, v] = coordinate(column, row);
+      const x = u * 2.15 * mix(1, Math.sqrt(1 - v * v / 2), terrain.round);
+      const z = v * 1.57 * mix(1, Math.sqrt(1 - u * u / 2), terrain.round);
+      const y = mix(-1.23, terrain.height(u, v), levels[level]);
+      return [x, y, z];
+    };
+
+    const grid = Array.from({ length: columns + 1 }, (_, column) =>
+      Array.from({ length: rows + 1 }, (_, row) => levels.map((_, level) => terrainPoint(column, row, level)))
+    );
+    const faces = [];
+    const add = (points, color) => faces.push({ points, color });
+    const top = levels.length - 1;
+    for (let a = 0; a < columns; a++) {
+      for (let b = 0; b < rows; b++) {
+        const [u, v] = coordinate(a + 0.5, b + 0.5);
+        const color = terrain.color(u, v);
+        const p = grid[a][b][top], q = grid[a][b + 1][top];
+        const r = grid[a + 1][b + 1][top], s = grid[a + 1][b][top];
+        add([p, q, r], color);
+        add([p, r, s], color);
+      }
+    }
+
+    function side(a, b) {
+      for (let n = 0; n < top; n++) {
+        add([a[n], b[n], b[n + 1], a[n + 1]], terrain.strata[n]);
+      }
+    }
+
+    for (let a = 0; a < columns; a++) {
+      side(grid[a + 1][0], grid[a][0]);
+      side(grid[a][rows], grid[a + 1][rows]);
+    }
+    for (let b = 0; b < rows; b++) {
+      side(grid[0][b], grid[0][b + 1]);
+      side(grid[columns][b + 1], grid[columns][b]);
+    }
+    return faces;
+  }
+
+  let terrainFrames;
+  function blendColor(a, b, fraction) {
+    if (a === b || fraction === 0) return a;
+    if (fraction === 1) return b;
+    const start = parseInt(a.slice(1), 16), end = parseInt(b.slice(1), 16);
+    return "#" + [16, 8, 0].map(shift =>
+      Math.round(mix(start >> shift & 255, end >> shift & 255, fraction)).toString(16).padStart(2, "0")
+    ).join("");
+  }
+
+  function morphTerrain(progress) {
+    terrainFrames ??= terrains.map(landscapeFrame);
+    const position = progress * 2;
+    const start = Math.min(1, Math.floor(position));
+    const fraction = ease(position - start);
+    const from = terrainFrames[start], to = terrainFrames[start + 1];
+    const model = mesh();
+    from.forEach(({ points, color }, i) => {
+      const ending = to[i];
+      const corners = points.map((point, j) => point.map((value, axis) =>
+        mix(value, ending.points[j][axis], fraction)
+      ));
+      model.face(corners, blendColor(color, ending.color, fraction));
+    });
+
+    // The well becomes visible as the delta flattens into a rock section.
+    const growth = ease(clamp((position - 1.54) / 0.46, 0, 1));
+    if (growth > 0.015) {
+      const x = 0.50, z = 1.575;
+      const top = mix(terrains[1].height(x / 2.15, 1), terrains[2].height(x / 2.15, 1), fraction);
+      const pipeTop = top + growth * 0.46;
+      model.box(x - 0.065, x + 0.065, top, pipeTop, z - 0.082, z + 0.014, "#f4d494");
+      model.box(x - 0.12, x + 0.12, pipeTop - 0.06 * growth, pipeTop + 0.025 * growth, z - 0.115, z + 0.035, "#587d70");
+      const bottom = mix(top, -1.2, growth);
+      for (let i = 0; i < 6; i++) {
+        const low = mix(bottom, top, i / 6), high = mix(bottom, top, (i + 1) / 6);
+        model.line([[x, low, z + 0.012], [x, high, z + 0.012]], "#f1d58f", 2.7, [0, 0, 1]);
+      }
+    }
+    model.shadow = true;
+    return model;
+  }
+
   function tinted(hex, multiplier) {
     const value = parseInt(hex.slice(1), 16);
     const channels = [value >> 16, value >> 8 & 255, value & 255];
@@ -191,6 +327,18 @@
     ctx.clearRect(0, 0, width, height);
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
+    if (model.shadow) {
+      ctx.save();
+      ctx.translate(width / 2, height * 0.72);
+      ctx.scale(1, 0.29);
+      const radius = Math.min(width * 0.40, height * 0.68);
+      const soft = ctx.createRadialGradient(0, 0, radius * 0.12, 0, 0, radius);
+      soft.addColorStop(0, "rgba(4, 14, 11, .52)");
+      soft.addColorStop(1, "rgba(4, 14, 11, 0)");
+      ctx.fillStyle = soft;
+      ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+      ctx.restore();
+    }
     ctx.strokeStyle = dark ? "rgba(179, 207, 189, .17)" : "rgba(82, 115, 98, .22)";
     ctx.lineWidth = 1;
     for (let n = -3; n < 4; n++) {
@@ -222,6 +370,99 @@
     }
   }
 
+  function drawCanvas(canvas, context, model, view, dark) {
+    const { width, height } = canvas.getBoundingClientRect();
+    if (!width || !height) return;
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    const w = Math.round(width * ratio), h = Math.round(height * ratio);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    drawScene(context, model, width, height, view, dark);
+  }
+
+  function mountJourney(root) {
+    const stage = root.querySelector(".journey-stage");
+    const canvas = root.querySelector("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return () => {};
+
+    const title = root.querySelector("[data-journey-title]");
+    const description = root.querySelector("[data-journey-description]");
+    const open = root.querySelector("[data-journey-open]");
+    const progressBar = root.querySelector("progress");
+    const steps = [...root.querySelectorAll("[data-journey-step]")];
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const events = new AbortController();
+    const { signal } = events;
+    let frame = 0, currentStep = -1;
+    let lastVisible = -1, lastWidth = 0, lastHeight = 0;
+
+    function scrollMetrics() {
+      const rect = root.getBoundingClientRect();
+      const stickyTop = parseFloat(getComputedStyle(stage).top) || 0;
+      const travel = Math.max(1, root.offsetHeight - stage.offsetHeight);
+      return { rect, stickyTop, travel };
+    }
+
+    function update() {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (!root.isConnected) return;
+        const { rect, stickyTop, travel } = scrollMetrics();
+        if (rect.top > innerHeight || rect.bottom < 0) return;
+
+        const scrollProgress = clamp((stickyTop - rect.top) / travel, 0, 1);
+        const index = Math.round(scrollProgress * (steps.length - 1));
+        const visible = reducedMotion.matches ? index / (steps.length - 1) : scrollProgress;
+        progressBar.value = scrollProgress;
+        if (index !== currentStep) {
+          currentStep = index;
+          const step = steps[index];
+          title.textContent = step.dataset.title;
+          description.textContent = step.dataset.description;
+          open.dataset.value = step.dataset.course;
+          steps.forEach((button, i) => button.setAttribute("aria-pressed", i === index ? "true" : "false"));
+        }
+
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        if (lastVisible === visible && lastWidth === w && lastHeight === h) return;
+        lastVisible = visible;
+        lastWidth = w;
+        lastHeight = h;
+        const yaw = 0.57 + 0.31 * visible - 0.54 * Math.sin(Math.PI * visible);
+        const tilt = 0.58 + 0.26 * Math.sin(Math.PI * visible);
+        drawCanvas(canvas, context, morphTerrain(visible), [yaw, tilt, 1], true);
+      });
+    }
+
+    root.addEventListener("click", event => {
+      const button = event.target.closest("[data-journey-step]");
+      if (!button) return;
+      const index = steps.indexOf(button);
+      if (index < 0) return;
+      const { rect, stickyTop, travel } = scrollMetrics();
+      window.scrollTo({
+        top: window.scrollY + rect.top - stickyTop + travel * index / (steps.length - 1),
+        behavior: reducedMotion.matches ? "instant" : "smooth",
+      });
+    }, { signal });
+    window.addEventListener("scroll", update, { passive: true, signal });
+    reducedMotion.addEventListener("change", update, { signal });
+    const resize = new ResizeObserver(update);
+    resize.observe(stage);
+    resize.observe(canvas);
+    update();
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      resize.disconnect();
+      events.abort();
+    };
+  }
+
   let active = [];
 
   function mount(root) {
@@ -239,16 +480,7 @@
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        const { width, height } = canvas.getBoundingClientRect();
-        if (!width || !height) return;
-        const ratio = Math.min(devicePixelRatio || 1, 2);
-        const w = Math.round(width * ratio), h = Math.round(height * ratio);
-        if (canvas.width !== w || canvas.height !== h) {
-          canvas.width = w;
-          canvas.height = h;
-        }
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        drawScene(ctx, model, width, height, view, document.documentElement.dataset.theme === "dark");
+        drawCanvas(canvas, ctx, model, view, document.documentElement.dataset.theme === "dark");
       });
     }
 
@@ -320,6 +552,7 @@
     render(container) {
       active.forEach(dispose => dispose());
       active = [...container.querySelectorAll("[data-geo-model]")].map(mount);
+      active.push(...Array.from(container.querySelectorAll("[data-geo-journey]"), mountJourney));
     },
   };
 })();

@@ -243,7 +243,6 @@ blockquote{margin:12px 0;padding-left:12px;border-left:3px solid var(--line)}
 .scan-search-results summary { display: list-item; cursor: pointer; }
 .scan-search-results .source-link { overflow-wrap: anywhere; }
 
-.hero.hero-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .98fr); align-items: center; gap: clamp(14px, 4vw, 54px); }
 .hero-copy .eyebrow { margin: 0 0 16px; }
 .hero-copy .button-row { margin-top: 21px; }
 .hero-copy h1 { font-size: clamp(38px, 5.7vw, 75px); }
@@ -262,13 +261,47 @@ blockquote{margin:12px 0;padding-left:12px;border-left:3px solid var(--line)}
 .course-art { position: relative; }
 .course-art .model-card-badge { position: absolute; inset: 9px 9px auto auto; color: #fff; background: #234239; }
 .course-body .course-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: auto; }
-@media (max-width: 860px) {
-  .hero.hero-layout { grid-template-columns: 1fr; gap: 18px; }
-  .hero-layout .model-view { max-width: 620px; }
-}
 @media (max-width: 420px) {
   .model-view { padding: 10px; }
   .model-controls .button { font-size: 14px; }
+}
+
+.scroll-journey { min-height: 210svh; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+.journey-stage { position: sticky; top: 12px; display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); align-items: center; gap: clamp(18px, 4vw, 48px); padding: clamp(15px, 3vw, 32px); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.journey-info { min-width: 0; }
+.journey-info h1 { margin: 0; font-size: clamp(35px, 5vw, 69px); line-height: 1.04; letter-spacing: -.06em; }
+.journey-info .journey-hint { margin: 12px 0 17px; color: var(--muted); }
+.journey-topic { min-height: 112px; padding: 10px 0 0; border-top: 1px solid var(--line); }
+.journey-topic h2 { margin: 0 0 4px; font-size: clamp(20px, 2.6vw, 27px); }
+.journey-topic p { margin: 0; }
+.journey-info .button-row { margin-top: 11px; }
+.journey-visual { display: grid; align-content: start; gap: 10px; margin: 0; min-width: 0; }
+.journey-canvas { display: block; width: 100%; height: clamp(235px, 45svh, 445px); border-radius: 10px; background: radial-gradient(ellipse at 48% 33%, #426659, #1e392f 61%, #172d26); }
+.journey-visual progress { height: 4px; }
+.journey-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.journey-steps button { min-width: 0; min-height: 44px; border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; color: var(--text, var(--ink)); background: var(--sub); overflow-wrap: anywhere; }
+.journey-steps button[aria-pressed=true] { border-color: var(--primary); background: var(--soft); color: var(--accent); font-weight: 650; }
+.journey-visual small { color: var(--muted); }
+@media (max-width: 850px) {
+  .scroll-journey { min-height: 210svh; }
+  .journey-stage { grid-template-columns: 1fr; gap: 11px; }
+  .journey-info h1 { font-size: clamp(28px, 7vw, 42px); }
+  .journey-info .journey-hint { margin: 7px 0 9px; }
+  .journey-topic { min-height: 87px; font-size: 14px; }
+  .journey-info .button-row { margin-top: 7px; }
+  .journey-canvas { height: clamp(156px, 29svh, 274px); }
+  .journey-visual { gap: 7px; }
+  .journey-steps button { font-size: 14px; }
+}
+@media (max-height: 620px) and (max-width: 850px) {
+  .journey-stage { top: 4px; }
+  .journey-canvas { height: clamp(140px, 27svh, 220px); }
+  .journey-info .journey-hint { font-size: 14px; }
+  .journey-topic { min-height: 0; }
+}
+@media print {
+  .scroll-journey { min-height: 0; }
+  .journey-stage { position: static; }
 }
 </style>
   
@@ -614,7 +647,7 @@ window.courseContent.additionalReading = {
 };
 // END GENERATED SOURCE READING
 </script>
-<script src="./geokmg-3d.js"></script>
+<script src="./geokmg-3d.js?v=2"></script>
 <script>
 'use strict';
 (() => {
@@ -759,6 +792,13 @@ const strings = {
   ocrSource:tr('Мәтін PDF сканымен әлі салыстырылмаған.','Текст из OCR. Сверка со сканом PDF ещё нужна.','OCR text. Verification against the PDF scan is pending.'),
   scans:tr('PDF беттері','Страницы PDF','PDF pages'),
   model3d:tr('3D үлгісі','3D-модель','3D model'),
+  journeyTitle:tr('Жер қойнауына саяхат','Путешествие в недра','Journey below ground'),
+  journeyHint:tr('Бетті жоғары-төмен жылжытыңыз. 3D үлгісі пішінін біртіндеп өзгертеді.','Листайте страницу вниз и вверх. Форма 3D-модели меняется вместе с прокруткой.','Scroll down or up. The 3D model changes shape as you scroll.'),
+  journeyModels:tr('Үш жер бедері','Три формы рельефа','Three landforms'),
+  journeyProgress:tr('3D көріністің барысы','Ход 3D-сцены','3D scene progress'),
+  journeyReef:tr('Риф','Риф','Reef'),
+  journeyDelta:tr('Атырау','Дельта','Delta'),
+  journeySection:tr('Қима','Разрез','Section'),
   modelHint:tr('Айналдыру үшін сүйреңіз немесе жебелерді пайдаланыңыз. Масштабты + және − арқылы өзгертіңіз.','Вращайте модель перетаскиванием или стрелками. Масштаб меняется кнопками + и −.','Drag or use the arrow keys to rotate. Use + and − to zoom.'),
   modelBaseline:tr('Бастапқы көрініс','Сбросить вид','Reset view'),
   modelTop:tr('Үстінен қарау','Вид сверху','Top view'),
@@ -858,14 +898,14 @@ function hasModel(id) {
   return Boolean(window.GeoKMG3D && Object.hasOwn(modelTopics, id));
 }
 
-function modelViewer(id, preview = false) {
+function modelViewer(id) {
   if (!hasModel(id)) return '';
   const topic = modelTopics[id];
   const palette = window.GeoKMG3D.colors[id];
   const safeId = escapeHTML(id);
   return `<section class="model-view" data-geo-model="${safeId}" aria-labelledby="model-title-${safeId}">
     <h2 id="model-title-${safeId}">${local(topic.title)}</h2>
-    ${preview ? '' : `<p>${local(topic.description)}</p>`}
+    <p>${local(topic.description)}</p>
     <canvas class="model-canvas" width="640" height="400" tabindex="0"
       aria-label="${escapeHTML(local(topic.title))}" aria-describedby="model-hint-${safeId}">${local(topic.description)}</canvas>
     <p id="model-hint-${safeId}" class="model-hint subtle">${t('modelHint')} ${t('modelNotToScale')}</p>
@@ -875,9 +915,9 @@ function modelViewer(id, preview = false) {
       <button type="button" class="button secondary" data-geo-command="top">${t('modelTop')}</button>
       <button type="button" class="button secondary" data-geo-command="reset">${t('modelBaseline')}</button>
     </div>
-    ${preview ? '' : `<ul class="model-legend">${Object.entries(topic.legend).map(([key, label]) =>
+    <ul class="model-legend">${Object.entries(topic.legend).map(([key, label]) =>
       `<li><span class="model-swatch" style="--swatch:${palette[key]}" aria-hidden="true"></span>${local(label)}</li>`
-    ).join('')}</ul>`}
+    ).join('')}</ul>
   </section>`;
 }
 
@@ -901,18 +941,50 @@ function cards() {
          ${hasModel(e.id) ? button(t('model3d'),'model3d',e.id) : ''}</div></div></article>`).join('')}</div></section>`;
 }
 
+function terrainJourney(course) {
+  const stages = [
+    ['kuznetsov', 'journeyReef'],
+    ['baraboshkin', 'journeyDelta'],
+    ['latyshova', 'journeySection'],
+  ];
+  const topic = modelTopics[stages[0][0]];
+  const resume = button(t('resume') + ' ' + icon('arrow'), 'resume', course.id, '');
+  return `<section class="scroll-journey" data-geo-journey aria-labelledby="journey-title">
+    <div class="journey-stage">
+      <div class="journey-info">
+        <h1 id="journey-title">${t('journeyTitle')}</h1>
+        <p class="journey-hint">${t('journeyHint')}</p>
+        <section class="journey-topic" aria-labelledby="journey-topic">
+          <h2 id="journey-topic" data-journey-title>${local(topic.title)}</h2>
+          <p data-journey-description>${local(topic.description)}</p>
+        </section>
+        <div class="button-row">${resume}
+          <button type="button" class="button secondary" data-action="model3d" data-value="kuznetsov" data-journey-open>${t('model3d')}</button>
+        </div>
+      </div>
+      <figure class="journey-visual">
+        <canvas class="journey-canvas" width="640" height="400" aria-hidden="true"></canvas>
+        <progress value="0" max="1" aria-label="${t('journeyProgress')}"></progress>
+        <div class="journey-steps" role="group" aria-label="${t('journeyModels')}">
+          ${stages.map(([id, name], i) => `<button type="button" data-journey-step data-course="${id}"
+            data-title="${escapeHTML(local(modelTopics[id].title))}"
+            data-description="${escapeHTML(local(modelTopics[id].description))}"
+            aria-pressed="${i === 0 ? 'true' : 'false'}">${t(name)}</button>`).join('')}
+        </div>
+        <figcaption><small>${t('modelNotToScale')}</small></figcaption>
+      </figure>
+    </div>
+  </section>`;
+}
+
 function home() {
   const c = currentCourse();
-  const previewId = 'kuznetsov';
-  return `<section class="hero${hasModel(previewId) ? ' hero-layout' : ''}">
-    <div class="hero-copy">
-      <p class="eyebrow">${t('project')}</p>
-      <h1>${t('chapter')} <span aria-hidden="true">→</span> ${t('course')}</h1><p>${t('tagline')}</p>
-      <div class="button-row">${button(t('resume') + ' ' + icon('arrow'), 'resume', c.id, '')}
-        ${hasModel(previewId) ? button(t('model3d'), 'model3d', previewId) : ''}</div>
-    </div>
-    ${modelViewer(previewId, true)}
-    </section>
+  const hero = hasModel('kuznetsov') ? terrainJourney(c) : `<section class="hero hero-copy">
+    <p class="eyebrow">${t('project')}</p>
+    <h1>${t('chapter')} <span aria-hidden="true">→</span> ${t('course')}</h1><p>${t('tagline')}</p>
+    ${button(t('resume') + ' ' + icon('arrow'), 'resume', c.id, '')}
+  </section>`;
+  return `${hero}
     <div class="section-heading"><h2>${t('progress')}</h2></div>${progressCard(c)}${cards()}`;
 }
 
