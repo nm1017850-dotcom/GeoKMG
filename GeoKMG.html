@@ -242,6 +242,34 @@ blockquote{margin:12px 0;padding-left:12px;border-left:3px solid var(--line)}
 .scan-search-match:empty { display: none; }
 .scan-search-results summary { display: list-item; cursor: pointer; }
 .scan-search-results .source-link { overflow-wrap: anywhere; }
+
+.hero.hero-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .98fr); align-items: center; gap: clamp(14px, 4vw, 54px); }
+.hero-copy .eyebrow { margin: 0 0 16px; }
+.hero-copy .button-row { margin-top: 21px; }
+.hero-copy h1 { font-size: clamp(38px, 5.7vw, 75px); }
+.model-view { width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); }
+.model-view h2 { margin: 0 0 8px; font-size: clamp(18px, 3vw, 24px); line-height: 1.25; }
+.model-view p { margin: 0 0 10px; }
+.model-canvas { display: block; width: 100%; min-height: 228px; max-height: clamp(330px, 58vh, 520px); aspect-ratio: 8 / 5; border: 1px solid var(--line); border-radius: 8px; background: radial-gradient(ellipse at 42% 25%, var(--bg), var(--soft)); cursor: grab; touch-action: none; }
+.model-canvas.dragging { cursor: grabbing; }
+.model-canvas:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.model-view .model-hint { margin: 10px 0; font-size: 14px; }
+.model-controls { display: flex; flex-wrap: wrap; gap: 7px; }
+.model-controls .button { min-width: 44px; min-height: 44px; padding: 7px 11px; }
+.model-legend { display: flex; flex-wrap: wrap; gap: 5px 15px; padding: 0; margin: 13px 0 0; list-style: none; color: var(--muted); font-size: 14px; }
+.model-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.model-swatch { width: 12px; height: 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--swatch); }
+.course-art { position: relative; }
+.course-art .model-card-badge { position: absolute; inset: 9px 9px auto auto; color: #fff; background: #234239; }
+.course-body .course-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: auto; }
+@media (max-width: 860px) {
+  .hero.hero-layout { grid-template-columns: 1fr; gap: 18px; }
+  .hero-layout .model-view { max-width: 620px; }
+}
+@media (max-width: 420px) {
+  .model-view { padding: 10px; }
+  .model-controls .button { font-size: 14px; }
+}
 </style>
   
   
@@ -586,6 +614,7 @@ window.courseContent.additionalReading = {
 };
 // END GENERATED SOURCE READING
 </script>
+<script src="./geokmg-3d.js"></script>
 <script>
 'use strict';
 (() => {
@@ -729,6 +758,13 @@ const strings = {
   plotBookData:tr('Кітаптағы деректер','Данные из книги','Book data'),
   ocrSource:tr('Мәтін PDF сканымен әлі салыстырылмаған.','Текст из OCR. Сверка со сканом PDF ещё нужна.','OCR text. Verification against the PDF scan is pending.'),
   scans:tr('PDF беттері','Страницы PDF','PDF pages'),
+  model3d:tr('3D үлгісі','3D-модель','3D model'),
+  modelHint:tr('Айналдыру үшін сүйреңіз немесе жебелерді пайдаланыңыз. Масштабты + және − арқылы өзгертіңіз.','Вращайте модель перетаскиванием или стрелками. Масштаб меняется кнопками + и −.','Drag or use the arrow keys to rotate. Use + and − to zoom.'),
+  modelBaseline:tr('Бастапқы көрініс','Сбросить вид','Reset view'),
+  modelTop:tr('Үстінен қарау','Вид сверху','Top view'),
+  modelZoomIn:tr('Жақындату','Приблизить','Zoom in'),
+  modelZoomOut:tr('Алыстату','Отдалить','Zoom out'),
+  modelNotToScale:tr('Оқу сызбасы, масштаб сақталмаған.','Учебная схема без масштаба.','Teaching diagram. Not to scale.'),
   scanSearch:tr('Оқулықтан іздеу','Поиск по учебнику','Search the textbook'),
   scanSearchPlaceholder:tr('Бет нөмірі, сабақ атауы немесе сөз','Номер страницы, название урока или слово','Page number, lesson title or word'),
   scanMatches:tr('Табылған үзінділер','Найдено отрывков','Matching excerpts'),
@@ -787,6 +823,64 @@ function progressCard(c) {
     <span class="progress-value">${progress(c)}%</span></section>`;
 }
 
+const modelTopics = {
+  latyshova: {
+    title: tr('Ұңғыма және тау жыныстары', 'Скважина и пласты', 'Well and rock layers'),
+    description: tr('Құмтас пен саз қабаттарының орнын ұңғыма ізі бойынша салыстырыңыз.', 'Сравните расположение песчаника и глины вдоль ствола скважины на стенке разреза.', 'Compare sandstone and clay layers along the well trace on the cut face.'),
+    legend: {
+      cover: tr('Беткі қабат', 'Поверхностный слой', 'Surface layer'),
+      sandstone: tr('Құмтас', 'Песчаник', 'Sandstone'),
+      clay: tr('Саз', 'Глина', 'Clay'),
+      well: tr('Ұңғыма ізі', 'Ствол скважины', 'Well trace'),
+    },
+  },
+  kuznetsov: {
+    title: tr('Карбонатты риф', 'Карбонатный риф', 'Carbonate reef'),
+    description: tr('Рифтің өзегін, беткейін және маңындағы карбонатты платформаны салыстырыңыз.', 'Сравните ядро рифа, его склон и окружающую карбонатную платформу.', 'Compare the reef core, its flank, and the surrounding carbonate platform.'),
+    legend: {
+      core: tr('Риф өзегі', 'Ядро рифа', 'Reef core'),
+      flank: tr('Риф беткейі', 'Склон рифа', 'Reef flank'),
+      platform: tr('Карбонатты платформа', 'Карбонатная платформа', 'Carbonate platform'),
+    },
+  },
+  baraboshkin: {
+    title: tr('Өзен атырауы', 'Речная дельта', 'River delta'),
+    description: tr('Су теңізге жеткенше арналардың қалай тарамдалатынын үстінен қараңыз.', 'Посмотрите сверху, как русло разветвляется перед выходом в море.', 'Use the top view to see how channels split before reaching the sea.'),
+    legend: {
+      sand: tr('Құмды шөгінділер', 'Песчаные отложения', 'Sandy deposits'),
+      silt: tr('Ұсақ түйірлі шөгінділер', 'Мелкозернистые отложения', 'Fine-grained deposits'),
+      water: tr('Арналар мен теңіз', 'Рукава и море', 'Channels and sea'),
+    },
+  },
+};
+
+function hasModel(id) {
+  return Boolean(window.GeoKMG3D && Object.hasOwn(modelTopics, id));
+}
+
+function modelViewer(id, preview = false) {
+  if (!hasModel(id)) return '';
+  const topic = modelTopics[id];
+  const palette = window.GeoKMG3D.colors[id];
+  const safeId = escapeHTML(id);
+  return `<section class="model-view" data-geo-model="${safeId}" aria-labelledby="model-title-${safeId}">
+    <h2 id="model-title-${safeId}">${local(topic.title)}</h2>
+    ${preview ? '' : `<p>${local(topic.description)}</p>`}
+    <canvas class="model-canvas" width="640" height="400" tabindex="0"
+      aria-label="${escapeHTML(local(topic.title))}" aria-describedby="model-hint-${safeId}">${local(topic.description)}</canvas>
+    <p id="model-hint-${safeId}" class="model-hint subtle">${t('modelHint')} ${t('modelNotToScale')}</p>
+    <div class="model-controls no-print">
+      <button type="button" class="button secondary" data-geo-command="closer" aria-label="${t('modelZoomIn')}">+</button>
+      <button type="button" class="button secondary" data-geo-command="farther" aria-label="${t('modelZoomOut')}">−</button>
+      <button type="button" class="button secondary" data-geo-command="top">${t('modelTop')}</button>
+      <button type="button" class="button secondary" data-geo-command="reset">${t('modelBaseline')}</button>
+    </div>
+    ${preview ? '' : `<ul class="model-legend">${Object.entries(topic.legend).map(([key, label]) =>
+      `<li><span class="model-swatch" style="--swatch:${palette[key]}" aria-hidden="true"></span>${local(label)}</li>`
+    ).join('')}</ul>`}
+  </section>`;
+}
+
 function cards() {
   const entries = [...catalog, ...courses.filter(c => c !== demo && !catalog.some(e => e.id === c.id)).map(c => ({
     ...c, cohort:'training', art:'logs', summary:tr('Импортталған тарау','Импортированная глава','Imported chapter')
@@ -797,20 +891,28 @@ function cards() {
     <div class="grid">${entries.filter(e => filter === 'all' || e.cohort === filter).map(e => `<article class="course-card">
       <div class="course-art" data-art="${escapeHTML(e.art)}" data-course="${escapeHTML(e.id)}">
         <span class="badge">${t(e.cohort)}</span>
+        ${hasModel(e.id) ? '<span class="badge model-card-badge">3D</span>' : ''}
         ${catalog.includes(e) ? `<span class="course-image-credit">${t('aiArt')}</span>` : ''}
       </div>
       ${e.cover ? `<p class="cover-caption">${local(e.cover)}</p>` : ''}
       <div class="course-body"><h3>${local(e.title)}</h3><p>${local(e.summary)}</p>
        <p class="meta">${courses.find(c => c.id === e.id)?.preview ? t('preview') : courses.some(c => c.id === e.id) ? t('open') : t('pending')}</p>
-       ${button(t('detail') + ' ' + icon('arrow'),'details',e.id)}</div></article>`).join('')}</div></section>`;
+       <div class="course-actions">${button(t('detail') + ' ' + icon('arrow'),'details',e.id)}
+         ${hasModel(e.id) ? button(t('model3d'),'model3d',e.id) : ''}</div></div></article>`).join('')}</div></section>`;
 }
 
 function home() {
   const c = currentCourse();
-  return `<section class="hero">
-    <div class="eyebrow">${t('project')}</div>
-    <h1>${t('chapter')} <span aria-hidden="true">→</span> ${t('course')}</h1><p>${t('tagline')}</p>
-    ${button(t('resume')+' '+icon('arrow'),'resume',c.id,'')}</section>
+  const previewId = 'kuznetsov';
+  return `<section class="hero${hasModel(previewId) ? ' hero-layout' : ''}">
+    <div class="hero-copy">
+      <p class="eyebrow">${t('project')}</p>
+      <h1>${t('chapter')} <span aria-hidden="true">→</span> ${t('course')}</h1><p>${t('tagline')}</p>
+      <div class="button-row">${button(t('resume') + ' ' + icon('arrow'), 'resume', c.id, '')}
+        ${hasModel(previewId) ? button(t('model3d'), 'model3d', previewId) : ''}</div>
+    </div>
+    ${modelViewer(previewId, true)}
+    </section>
     <div class="section-heading"><h2>${t('progress')}</h2></div>${progressCard(c)}${cards()}`;
 }
 
@@ -1290,6 +1392,7 @@ function coursePage() {
     map: () => `<h2>${t('map')}</h2>${c.relations.length ? '' : `<p>${local(s.title)}</p>`}<ul class="connection-map">${c.relations.map(([a,b,relation]) => `<li><strong>${name(a)}</strong> ${icon('arrow')} <strong>${name(b)}</strong>${relation ? '<p>'+(typeof relation === 'string' ? t(relation) : local(relation))+'</p>' : ''}</li>`).join('')}</ul>`,
     notes: () => courseNotes(c),
   };
+  if (hasModel(c.id)) body.model3d = () => modelViewer(c.id);
   if (c.sourceIndex) body.scans = () => scanSearchPanel(c);
   const entry = catalog.find(item => item.id === c.id);
   const claim = s.blocks.map(block => c.claims?.[block.claim]).find(Boolean);
@@ -1334,6 +1437,7 @@ function render(focus) {
     <select class="language" id="language" aria-label="${t('language')}">${Object.entries({kk:'Қазақша',ru:'Русский',en:'English'}).map(([code,label])=>`<option value="${code}" ${state.lang===code?'selected':''}>${label}</option>`).join('')}</select></div></header>
     <main id="content" data-page="${page}" tabindex="-1">${storageFailed ? `<p role="status">${t('storage')}</p>` : ''}
     ${({home, catalog:cards, details, course:coursePage, progress:()=>`<h1 class="page-title">${t('progress')}</h1>${courses.map(progressCard).join('')}<div class="button-row">${button(t('resume'),'resume',state.course,'')}</div>`})[page]()}</main></div>`;
+  window.GeoKMG3D?.render(app);
   if (focus) (document.querySelector(focus) || document.querySelector('main')).focus({preventScroll:true});
 }
 
@@ -1373,6 +1477,9 @@ app.addEventListener('click', event => {
     case 'navigate': page=value; move=true; break;
     case 'details': infoId=value; page='details'; move=true; break;
     case 'resume': state.course=value; page='course'; tab='lesson'; resetQuiz(); move=true; break;
+    case 'model3d':
+      if (!hasModel(value)) return;
+      state.course=value; page='course'; tab='model3d'; resetQuiz(); move=true; break;
     case 'step': state.steps[c.id]=value; tab='lesson'; resetQuiz(); move=true; break;
     case 'tab': tab=value; break;
     case 'reveal': revealed=value; break;
